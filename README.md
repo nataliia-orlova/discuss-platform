@@ -1,4 +1,4 @@
-## Features and notes
+## Features
 
 -   nextui
 -   next-auth/authjs
