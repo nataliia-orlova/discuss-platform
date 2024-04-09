@@ -1,6 +1,11 @@
 'use server';
 import { z } from 'zod';
 import { auth } from '@/auth';
+import type { Topic } from '@prisma/client';
+import { redirect } from 'next/navigation';
+import { db } from '@/db';
+import paths from '@/paths';
+import { revalidatePath } from 'next/cache';
 
 const createTopicSchema = z.object({
     //  rules for the name input
@@ -47,10 +52,35 @@ export async function createTopic(
             },
         };
     }
-    return {
-        errors: {},
-    };
+    //  to call redirect we need topic id
+    let topic: Topic;
+    try {
+        topic = await db.topic.create({
+            data: {
+                slug: result.data.name,
+                description: result.data.description,
+            },
+        });
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            return {
+                errors: {
+                    _form: [err.message],
+                },
+            };
+        } else {
+            return {
+                errors: {
+                    _form: ['Something went wrong'],
+                },
+            };
+        }
+    }
+    revalidatePath('/');
+    //  redirect must be outside try-catch because it works as direct
+    redirect(paths.topicShow(topic.slug));
+
     //  also added empty errors object in the component from where we receive server action
 
-    //  TODO: revalidate homepage after creating a topic
+    //  TODO: revalidate homepage after creating a topic - place before redirect
 }
