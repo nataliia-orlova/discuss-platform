@@ -28,3 +28,9 @@
 -   add individual topic page (topicShow)
 -   add ability to create a new post (see steps for create a new topic)
     -   add btn and form for gathering user inputs
+-   add post to db
+    -   pass slug as a prop from TopicShowPage to PostCreateForm
+    -   when user submits data slug+FormData go to server action CreatePost
+    -   slug is not id (we need id) - so we need to reach out to db and get slug's id
+    -   add this slug id when creating a post
+-   create a post in UI

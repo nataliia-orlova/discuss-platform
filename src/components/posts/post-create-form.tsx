@@ -12,14 +12,21 @@ import { useFormState } from 'react-dom';
 //  importing client component with a hook that cathes form status:
 import FormButton from '../common/form-button';
 
-export default function PostCreateForm() {
+interface PostCreateFormProps {
+    slug: string;
+}
+
+export default function PostCreateForm({ slug }: PostCreateFormProps) {
     //  the errors are communicated back to the component
     //  in the component make sure to receive these issues/errors
     //  make sure they are tied to the right fields in the form
     //  connect to server action in useFormState hook + set initial state with no errors
-    const [formState, action] = useFormState(actions.createPost, {
-        errors: {},
-    });
+    const [formState, action] = useFormState(
+        actions.createPost.bind(null, slug),
+        {
+            errors: {},
+        }
+    );
 
     return (
         <Popover placement='left'>
@@ -50,6 +57,11 @@ export default function PostCreateForm() {
                             //  ? in case name is undefined
                             errorMessage={formState.errors.content?.join(', ')}
                         />
+                        {formState.errors._form ? (
+                            <div className='rounded p-2 bg-red-200 border border-red-200'>
+                                {formState.errors._form.join(', ')}
+                            </div>
+                        ) : null}
                         <FormButton>Create</FormButton>
                     </div>
                 </form>

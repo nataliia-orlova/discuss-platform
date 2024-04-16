@@ -32,6 +32,7 @@ interface CreatePostFormState {
 //  the second argument will be form data
 //  the return value of this function is smth of the type CreatePostFormState - use Promise
 export async function createPost(
+    slug: string,
     formState: CreatePostFormState,
     formData: FormData
 ): Promise<CreatePostFormState> {
@@ -44,12 +45,55 @@ export async function createPost(
     if (!result.success) {
         return { errors: result.error.flatten().fieldErrors };
     }
-    return {
-        errors: {},
-    };
-    //  now the errors are communicated back to the component
-    //  in the component make sure to receive these issues/errors
-    //  make sure they are tied to the right fields in the form
+    //  check if user is signed in
+    //  go back to component to make sure the error prints on UI
+    const session = await auth();
+    if (!session || !session.user) {
+        return {
+            errors: {
+                _form: ['You must be signed in to to this.'],
+            },
+        };
+    }
+    //  get topic/slug id
+    const topic = await db.topic.findFirst({
+        where: { slug },
+    });
 
-    //  TODO: revalidate topic show page
+    if (!topic) {
+        return {
+            errors: {
+                _form: ['This topic is not found'],
+            },
+        };
+    }
+    //  creating the post
+    let post: Post;
+    try {
+        post = await db.post.create({
+            data: {
+                title: result.data.title,
+                content: result.data.content,
+                userId: session.user.id,
+                topicId: topic.id,
+            },
+        });
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            return {
+                errors: {
+                    _form: [err.message],
+                },
+            };
+        } else {
+            return {
+                errors: {
+                    _form: ['Failed to create post'],
+                },
+            };
+        }
+    }
+    //  revalidate topic show page and redirect
+    revalidatePath(paths.topicShow(slug));
+    redirect(paths.postShow(slug, post.id));
 }
