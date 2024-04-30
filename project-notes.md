@@ -34,3 +34,7 @@
     -   slug is not id (we need id) - so we need to reach out to db and get slug's id
     -   add this slug id when creating a post
 -   create a post in UI
+    -   add post query file for functions that will access db and run a specific query
+    -   find postlist component - make it expect a function that returns post with data
+        -- so the parent component decides which function to run to fetch data
+        -- it passes it as a prop to the child component and the child component is actually implementing fetching
